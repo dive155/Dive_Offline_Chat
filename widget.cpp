@@ -6,36 +6,11 @@ Widget::Widget(QString defName, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
 {
+    socket = new QTcpSocket;
     ui->setupUi(this);
     ui->nameField->setText(defName);
     ui->msgField->setPlaceholderText("Enter your message here");
-    /*ui->spinBox->setMaximum(5);
-    ui->spinBox->setMinimum(1);
-    ui->spinBox->setMinimum(0);
-    connect(ui->pushButton, SIGNAL(clicked()),
-            this, SLOT(loadImage()));
-    connect(ui->pushButton_6, SIGNAL(clicked()),
-            this, SLOT(saveImage()));
-   // connect(ui->pushButton_2, SIGNAL(clicked()),
-   //         this, SLOT(makeRed()));
-    connect(ui->pushButton_3, SIGNAL(clicked()),
-            this, SLOT(justGist()));
-    connect(ui->pushButton_4, SIGNAL(clicked()),
-            this, SLOT(medFilter()));
-    connect(ui->pushButton_5, SIGNAL(clicked()),
-            this, SLOT(rangFilter()));
-    connect(ui->spinBox, SIGNAL(valueChanged(int)),
-            this, SLOT(checkSpin(int)));
-    connect(ui->spinBox_2, SIGNAL(valueChanged(int)),
-            this, SLOT(checkDisplacement(int)));
-    connect(ui->spinBox_2, SIGNAL(valueChanged(int)),
-            this, SLOT(checkK()));
-    connect(ui->spinBox, SIGNAL(valueChanged(int)),
-            this, SLOT(checkK()));
 
-    checkK();
-    checkSpin(ui->spinBox->value());
-*/
     connect(ui->sendBtn  , SIGNAL(clicked()),
             this, SLOT(sendMsg()));
     connect(ui->msgField  , SIGNAL(returnPressed()),
@@ -44,6 +19,11 @@ Widget::Widget(QString defName, QWidget *parent) :
             this, SLOT(sendToPartner()));
     connect(ui->sendBtn  , SIGNAL(clicked()),
             this, SLOT(sendToPartner()));
+
+    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this,
+            SLOT (error(QAbstractSocket::SocketError)));
+    connect(socket, SIGNAL(connected()), this, SLOT(connected()));
+    connect(ui->connectButton,SIGNAL(clicked(bool)), this, SLOT(connectToServer()));
 }
 
 
@@ -58,6 +38,20 @@ Widget::~Widget()
     delete ui;
 }
 
+void Widget::connectToServer()
+{
+    socket->connectToHost(ui->hostEdit->text(), 12000); //192.168.200.71
+}
+
+void Widget::error(QAbstractSocket::SocketError)
+{
+    ui->statusLabel->setText(socket->errorString());
+}
+
+void Widget::connected()
+{
+    ui->statusLabel->setText("online");
+}
 
 void Widget::setPartner(Widget* aPartner)
 {

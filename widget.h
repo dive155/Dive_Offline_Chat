@@ -4,7 +4,7 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtGui/QMouseEvent>
-
+#include <QTcpSocket>
 namespace Ui {
 class Widget;
 }
@@ -25,10 +25,15 @@ private:/*
     void mousePressEvent(QMouseEvent * event); */
     QString name1;
     Widget* partner;
+    QTcpSocket* socket;
 
 private slots:
     void sendMsg();
     void sendToPartner();
+
+    void connectToServer();
+    void error(QAbstractSocket::SocketError);
+    void connected();
 
 };
 
