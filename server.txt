@@ -1,0 +1,128 @@
+#ifndef CHATSSERVER_H
+#define CHATSSERVER_H
+
+#include <QWidget>
+#include <QTcpServer>
+#include <QVector>
+#include <QTcpSocket>
+#include <QPushButton>
+#include <QComboBox>
+#include <QTextEdit>
+
+class ChatsServer : public QWidget
+{
+    Q_OBJECT
+    QTcpServer* server;
+    QVector<QTcpSocket*> clients;
+    QPushButton* listenButton;
+    QTextEdit* logEdit;
+
+public:
+    explicit ChatsServer(QWidget *parent = 0);
+    ~ChatsServer();
+signals:
+
+private slots:
+    void startServer();
+    void newClient();
+    void processClient();
+    void disconnectClient();
+
+};
+
+#endif // CHATSSERVER_H
+
+
+chatserver.h
+----------------------------------
+
+
+
+#include "chatsserver.h"
+#include <QVBoxLayout>
+#include <QNetworkInterface>
+
+ChatsServer::ChatsServer(QWidget *parent) : QWidget(parent)
+{
+    server = new QTcpServer(this);
+    connect(server, SIGNAL(newConnection()), this, SLOT(newClient()));
+    listenButton = new QPushButton("Start Server");
+    connect(listenButton, SIGNAL(clicked(bool)), this, SLOT(startServer()));
+
+    logEdit = new QTextEdit;
+    logEdit->setReadOnly(true);
+
+    QVBoxLayout* layout = new QVBoxLayout;
+    layout->addWidget(listenButton);
+    layout->addWidget(logEdit);
+    setLayout(layout);
+}
+
+ChatsServer::~ChatsServer()
+{
+    server->close();
+    delete server;
+}
+
+void ChatsServer::startServer()
+{
+    if (!server->isListening()) {
+        server->listen(QHostAddress::Any, 12000);
+        if (server->isListening()) {
+            logEdit->append("Server started");
+            listenButton->setText("Stop Server");
+        }
+    }
+    else {
+        server->close();
+        logEdit->append("Server stopped");
+        listenButton->setText("Start Server");
+    }
+}
+
+void ChatsServer::newClient()
+{
+    QTcpSocket* newClient = server->nextPendingConnection();
+    connect(newClient, SIGNAL(readyRead()), this, SLOT(processClient()));
+    connect(newClient, SIGNAL(disconnected()), this, SLOT(disconnectClient()));
+    clients.push_back(newClient);
+    logEdit->append("New client from " + newClient->peerAddress().toString()
+                    + " " + QString::number(newClient->peerPort()));
+
+}
+
+void ChatsServer::processClient()
+{
+    QTcpSocket* client = dynamic_cast<QTcpSocket*>(sender());
+    QByteArray data = client->readAll();
+    for (int i = 0; i < clients.size(); i++) {
+        clients[i]->write(data);
+    }
+}
+
+void ChatsServer::disconnectClient()
+{
+    QTcpSocket* client = dynamic_cast<QTcpSocket*>(sender());
+    for (int i = 0; i < clients.size(); i++) {
+        if (clients[i] == client) {
+            logEdit->append("Client disconnected");
+            client->deleteLater();
+            clients.remove(i);
+            break;
+        }
+    }
+}
+
+
+-----------------------
+
+#include <QApplication>
+#include "chatsserver.h"
+
+int main(int argc, char* argv[])
+{
+    QApplication app(argc, argv);
+    ChatsServer server;
+    server.show();
+    return app.exec();
+}
