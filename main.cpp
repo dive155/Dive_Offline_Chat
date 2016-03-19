@@ -8,13 +8,13 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     Widget w("Dummy");
-    Widget v("Derp");
+    //Widget v("Derp");
     w.setWindowTitle("Chat 1");
-    v.setWindowTitle("Chat 2");
-    w.setPartner(&v);
-    v.setPartner(&w);
+    //v.setWindowTitle("Chat 2");
+    //w.setPartner(&v);
+    //v.setPartner(&w);
     w.show();
-    v.show();
+    //v.show();
 
     return a.exec();
 }

@@ -28,12 +28,11 @@ private:/*
     QTcpSocket* socket;
 
 private slots:
-    void sendMsg();
-    void sendToPartner();
-
     void connectToServer();
     void error(QAbstractSocket::SocketError);
     void connected();
+    void sendMessage();
+    void receiveMessage();
 
 };
 
